@@ -1,7 +1,40 @@
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
 }
+
+.splitLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.crewsSection {
+    flex: 1;
+}
+
+.calendarSection {
+    flex: 0 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .splitLayout {
+        flex-direction: row;
+        gap: 2rem;
+    }
+
+    .crewsSection {
+        flex: 2;
+    }
+
+    .calendarSection {
+        flex: 1;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+    }
+}
+
 
 .header {
     margin-bottom: 2rem;

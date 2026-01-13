@@ -10,8 +10,35 @@
 
 .subtitle {
     color: var(--color-text-muted);
-    margin-bottom: 2rem;
 }
+
+.headerSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.addButton:hover {
+    opacity: 0.9;
+}
+
 
 .card {
     background: var(--color-surface);

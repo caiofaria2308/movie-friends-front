@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import api from '../services/api';
+import { Plus } from 'lucide-react';
+import DayOffModal from '../components/DayOffModal';
 import styles from './CalendarPage.module.css';
 import type { DayOff } from '../types/dayoff';
 
@@ -9,8 +11,9 @@ const CalendarPage = () => {
     const [dayOffs, setDayOffs] = useState<DayOff[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [loading, setLoading] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [clickedDate, setClickedDate] = useState<Date | undefined>();
 
-    // Helper to strip time for comparison
     const isSameDay = (d1: Date, d2: Date) => {
         return d1.getDate() === d2.getDate() &&
             d1.getMonth() === d2.getMonth() &&
@@ -30,51 +33,58 @@ const CalendarPage = () => {
         fetchDayOffs();
     }, []);
 
-    const handleDayClick = async (value: Date) => {
-        // Determine if we are adding or removing
-        // For simplicity: if exists, remove (single instance). If not, add (single instance full day).
-        // Real app might show a modal for details (repeat, specific hours).
-
-        // Check if there's a dayoff on this day
+    const handleDayClick = (value: Date) => {
         const existing = dayOffs.find(d => {
             const start = new Date(d.init_hour);
             return isSameDay(start, value);
         });
 
+        if (existing && existing.id) {
+            // Show delete options
+            const mode = prompt(
+                'Escolha como deletar:\n' +
+                '1 - Somente esta ocorrência (single)\n' +
+                '2 - Esta e futuras ocorrências (future)\n' +
+                '3 - Todas as ocorrências (all)',
+                '1'
+            );
+
+            const modeMap: { [key: string]: string } = {
+                '1': 'single',
+                '2': 'future',
+                '3': 'all'
+            };
+
+            const deleteMode = modeMap[mode || '1'] || 'single';
+
+            if (confirm(`Confirmar exclusão (${deleteMode})?`)) {
+                handleDeleteDayOff(existing.id, deleteMode);
+            }
+        } else {
+            // Open modal to create
+            setClickedDate(value);
+            setModalOpen(true);
+        }
+    };
+
+    const handleDeleteDayOff = async (id: number, mode: string) => {
         setLoading(true);
         try {
-            if (existing && existing.id) {
-                // Delete
-                if (confirm('Remover day off deste dia?')) {
-                    await api.delete(`/api/user/dayoff/${existing.id}?mode=single`);
-                    setDayOffs(prev => prev.filter(p => p.id !== existing.id));
-                }
-            } else {
-                // Add new (Standard 8h-18h for example, or full day)
-                const init = new Date(value);
-                init.setHours(8, 0, 0, 0);
-                const end = new Date(value);
-                end.setHours(18, 0, 0, 0);
-
-                const payload = {
-                    init_hour: init.toISOString(),
-                    end_hour: end.toISOString(),
-                    repeat: false
-                };
-
-                const res = await api.post('/api/user/dayoff', payload);
-                // The API returns the created object
-                setDayOffs([...dayOffs, res.data]);
-            }
+            await api.delete(`/api/user/dayoff/${id}?mode=${mode}`);
+            await fetchDayOffs();
         } catch (error) {
-            console.error('Error updating dayoff', error);
-            alert('Erro ao atualizar day off');
+            console.error('Error deleting dayoff', error);
+            alert('Erro ao deletar day off');
         } finally {
             setLoading(false);
         }
     };
 
-    // Custom tile class to highlight days
+    const handleSaveDayOff = async (dayOffData: Partial<DayOff>) => {
+        await api.post('/api/user/dayoff', dayOffData);
+        await fetchDayOffs();
+    };
+
     const tileClassName = ({ date, view }: { date: Date, view: string }) => {
         if (view === 'month') {
             if (dayOffs.find(d => isSameDay(new Date(d.init_hour), date))) {
@@ -86,8 +96,22 @@ const CalendarPage = () => {
 
     return (
         <div className={styles.container}>
-            <h2 className={styles.title}>Meus Day Offs</h2>
-            <p className={styles.subtitle}>Gerencie seus dias de folga.</p>
+            <div className={styles.headerSection}>
+                <div>
+                    <h2 className={styles.title}>Meus Day Offs</h2>
+                    <p className={styles.subtitle}>Gerencie seus dias de folga e recorrências.</p>
+                </div>
+                <button
+                    className={styles.addButton}
+                    onClick={() => {
+                        setClickedDate(new Date());
+                        setModalOpen(true);
+                    }}
+                >
+                    <Plus size={20} />
+                    <span>Adicionar</span>
+                </button>
+            </div>
 
             <div className={styles.card}>
                 <div className={styles.calendarWrapper}>
@@ -97,12 +121,20 @@ const CalendarPage = () => {
                         value={selectedDate}
                         onClickDay={handleDayClick}
                         tileClassName={tileClassName}
+                        locale="pt-BR"
                     />
                 </div>
                 <div className={styles.legend}>
                     <span className={styles.dot}></span> Dias de folga
                 </div>
             </div>
+
+            <DayOffModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onSave={handleSaveDayOff}
+                selectedDate={clickedDate}
+            />
         </div>
     );
 };

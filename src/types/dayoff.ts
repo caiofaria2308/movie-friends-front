@@ -4,7 +4,7 @@ export interface DayOff {
     init_hour: string; // ISO Date
     end_hour: string; // ISO Date
     repeat?: boolean;
-    repeat_type?: 'weekly' | 'monthly' | 'daily' | 'none';
+    repeat_type?: 'weekly' | 'monthly' | 'daily' | 'yearly' | 'none';
     repeat_value?: string;
     created_at?: string;
     updated_at?: string;

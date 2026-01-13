@@ -1,11 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, CreditCard, Users, LogOut, Hexagon } from 'lucide-react';
+import { Calendar, CreditCard, Users, LogOut, User, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import styles from './DashboardLayout.module.css';
 
 const DashboardLayout = () => {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -14,41 +16,69 @@ const DashboardLayout = () => {
 
     return (
         <div className={styles.layout}>
-            {/* Header / Mobile Nav */}
-            <header className={styles.header}>
-                <div className={styles.logo}>
-                    <Hexagon className={styles.icon} />
-                    <span>Crew</span>
+            {/* Sidebar */}
+            <aside className={styles.sidebar}>
+                {/* User Section */}
+                <div className={styles.userSection}>
+                    <button
+                        className={styles.userButton}
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    >
+                        <div className={styles.userAvatar}>
+                            <User size={20} />
+                        </div>
+                        <div className={styles.userDetails}>
+                            <span className={styles.userName}>{user?.name || 'User'}</span>
+                            <span className={styles.userRole}>{user?.role || 'user'}</span>
+                        </div>
+                        <ChevronDown size={18} className={userMenuOpen ? styles.chevronOpen : ''} />
+                    </button>
+
+                    {/* User Dropdown Menu */}
+                    {userMenuOpen && (
+                        <div className={styles.userMenu}>
+                            <NavLink
+                                to="/dashboard/pix"
+                                className={styles.userMenuItem}
+                                onClick={() => setUserMenuOpen(false)}
+                            >
+                                <CreditCard size={16} />
+                                <span>Chaves Pix</span>
+                            </NavLink>
+                        </div>
+                    )}
                 </div>
-                <div className={styles.userInfo}>
-                    <span>{user?.name || 'User'}</span>
-                </div>
-            </header>
+
+                {/* Navigation */}
+                <nav className={styles.nav}>
+                    <NavLink
+                        to="/dashboard"
+                        end
+                        className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}
+                    >
+                        <Users size={20} />
+                        <span>Crews</span>
+                    </NavLink>
+                    <NavLink
+                        to="/dashboard/calendar"
+                        className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}
+                    >
+                        <Calendar size={20} />
+                        <span>Calendário</span>
+                    </NavLink>
+                </nav>
+
+                {/* Logout Button */}
+                <button onClick={handleLogout} className={styles.logoutButton}>
+                    <LogOut size={20} />
+                    <span>Sair</span>
+                </button>
+            </aside>
 
             {/* Main Content Area */}
             <main className={styles.main}>
                 <Outlet />
             </main>
-
-            {/* Bottom Navigation (Mobile First) */}
-            <nav className={styles.bottomNav}>
-                <NavLink to="/dashboard" end className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-                    <Users size={24} />
-                    <span>Crews</span>
-                </NavLink>
-                <NavLink to="/dashboard/pix" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-                    <CreditCard size={24} />
-                    <span>Pix</span>
-                </NavLink>
-                <NavLink to="/dashboard/calendar" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-                    <Calendar size={24} />
-                    <span>Day Offs</span>
-                </NavLink>
-                <button onClick={handleLogout} className={styles.navItem}>
-                    <LogOut size={24} />
-                    <span>Sair</span>
-                </button>
-            </nav>
         </div>
     );
 };

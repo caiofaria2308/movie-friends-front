@@ -1,4 +1,5 @@
 import { Calendar, MapPin, Beer } from 'lucide-react';
+import MiniCalendar from '../components/MiniCalendar';
 import styles from './CrewListPage.module.css';
 
 interface Crew {
@@ -18,36 +19,46 @@ const MOCKED_CREWS: Crew[] = [
 const CrewListPage = () => {
     return (
         <div className={styles.container}>
-            <div className={styles.header}>
-                <h2 className={styles.title}>Meus Crews</h2>
-                <p className={styles.subtitle}>Seus grupos de rolês.</p>
-            </div>
-
-            <div className={styles.grid}>
-                {MOCKED_CREWS.map(crew => (
-                    <div key={crew.id} className={styles.card}>
-                        <div className={styles.cardHeader}>
-                            <h3 className={styles.crewName}>{crew.name}</h3>
-                            <div className={styles.badge}>{crew.members} membros</div>
-                        </div>
-
-                        <div className={styles.info}>
-                            <div className={styles.infoItem}>
-                                <Calendar size={16} />
-                                <span>{crew.nextEvent}</span>
-                            </div>
-                            <div className={styles.infoItem}>
-                                <MapPin size={16} />
-                                <span>{crew.location}</span>
-                            </div>
-                        </div>
-
-                        <button className={styles.actionButton}>
-                            <Beer size={16} />
-                            <span>Detalhes do Rolê</span>
-                        </button>
+            <div className={styles.splitLayout}>
+                {/* Left: Crews */}
+                <div className={styles.crewsSection}>
+                    <div className={styles.header}>
+                        <h2 className={styles.title}>Meus Crews</h2>
+                        <p className={styles.subtitle}>Seus grupos de rolês.</p>
                     </div>
-                ))}
+
+                    <div className={styles.grid}>
+                        {MOCKED_CREWS.map(crew => (
+                            <div key={crew.id} className={styles.card}>
+                                <div className={styles.cardHeader}>
+                                    <h3 className={styles.crewName}>{crew.name}</h3>
+                                    <div className={styles.badge}>{crew.members} membros</div>
+                                </div>
+
+                                <div className={styles.info}>
+                                    <div className={styles.infoItem}>
+                                        <Calendar size={16} />
+                                        <span>{crew.nextEvent}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <MapPin size={16} />
+                                        <span>{crew.location}</span>
+                                    </div>
+                                </div>
+
+                                <button className={styles.actionButton}>
+                                    <Beer size={16} />
+                                    <span>Detalhes do Rolê</span>
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Right: Mini Calendar */}
+                <div className={styles.calendarSection}>
+                    <MiniCalendar />
+                </div>
             </div>
         </div>
     );
