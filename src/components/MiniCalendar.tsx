@@ -9,15 +9,9 @@ const MiniCalendar = () => {
     const [dayOffs, setDayOffs] = useState<DayOff[]>([]);
     const [currentDate] = useState<Date>(new Date());
 
-    const isSameDay = (d1: Date, d2: Date) => {
-        return d1.getDate() === d2.getDate() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getFullYear() === d2.getFullYear();
-    };
-
-    const fetchDayOffs = async () => {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
+    const fetchDayOffs = async (date: Date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
 
         try {
             const response = await api.get(`/api/user/dayoff?filter_type=month&year=${year}&month=${month}`);
@@ -28,12 +22,21 @@ const MiniCalendar = () => {
     };
 
     useEffect(() => {
-        fetchDayOffs();
+        fetchDayOffs(new Date());
     }, []);
 
     const tileClassName = ({ date, view }: { date: Date, view: string }) => {
         if (view === 'month') {
-            if (dayOffs.find(d => isSameDay(new Date(d.init_hour), date))) {
+            const hasDayOff = dayOffs.some(d => {
+                const start = new Date(d.init_hour);
+                const end = new Date(d.end_hour);
+                const dDate = new Date(date).setHours(0, 0, 0, 0);
+                const sDate = new Date(start).setHours(0, 0, 0, 0);
+                const eDate = new Date(end).setHours(0, 0, 0, 0);
+                return dDate >= sDate && dDate <= eDate;
+            });
+
+            if (hasDayOff) {
                 return styles.dayOff;
             }
         }
@@ -47,6 +50,11 @@ const MiniCalendar = () => {
                 <Calendar
                     value={currentDate}
                     tileClassName={tileClassName}
+                    onActiveStartDateChange={({ activeStartDate }) => {
+                        if (activeStartDate) {
+                            fetchDayOffs(activeStartDate);
+                        }
+                    }}
                     locale="pt-BR"
                 />
             </div>

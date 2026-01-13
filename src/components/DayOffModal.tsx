@@ -22,7 +22,12 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
 
     useEffect(() => {
         if (isOpen && selectedDate) {
-            const dateStr = selectedDate.toISOString().split('T')[0];
+            // Use local date instead of UTC to avoid "jumping" days due to timezone
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
             setInitDate(dateStr);
             setEndDate(dateStr);
         }
