@@ -1,0 +1,89 @@
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 0.5rem;
+    color: var(--color-primary);
+}
+
+.subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+}
+
+.form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+}
+
+.inputWrapper {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.addButton {
+    padding: 0.75rem;
+    height: 48px;
+    /* Match input height roughly */
+    margin-top: 1.4rem;
+    /* Match label offset roughly */
+}
+
+.list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.listItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--color-background);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.listItem:hover {
+    border-color: var(--color-secondary);
+}
+
+.keyText {
+    font-weight: 500;
+}
+
+.deleteBtn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: color 0.2s;
+}
+
+.deleteBtn:hover {
+    color: var(--color-accent);
+    background-color: rgba(239, 35, 60, 0.1);
+}
+
+.emptyState {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: 1rem;
+}
