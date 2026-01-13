@@ -6,6 +6,7 @@ import PixPage from './pages/PixPage';
 import CalendarPage from './pages/CalendarPage';
 import CrewListPage from './pages/CrewListPage';
 import DashboardLayout from './components/DashboardLayout';
+import RequireAuth from './components/RequireAuth';
 
 function App() {
   return (
@@ -15,7 +16,11 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route path="/dashboard" element={
+            <RequireAuth>
+              <DashboardLayout />
+            </RequireAuth>
+          }>
             <Route index element={<CrewListPage />} />
             <Route path="pix" element={<PixPage />} />
             <Route path="calendar" element={<CalendarPage />} />
