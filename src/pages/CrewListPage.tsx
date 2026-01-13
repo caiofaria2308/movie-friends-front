@@ -23,8 +23,8 @@ const CrewListPage = () => {
                 {/* Left: Crews */}
                 <div className={styles.crewsSection}>
                     <div className={styles.header}>
-                        <h2 className={styles.title}>Meus Crews</h2>
-                        <p className={styles.subtitle}>Seus grupos de rolês.</p>
+                        <h2 className={styles.title}>Meus próximos rolês</h2>
+                        <p className={styles.subtitle}>Seus próximos rolês de cada família.</p>
                     </div>
 
                     <div className={styles.grid}>

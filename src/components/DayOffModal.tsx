@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { DayOff } from '../types/dayoff';
 import styles from './DayOffModal.module.css';
@@ -11,12 +11,22 @@ interface DayOffModalProps {
 }
 
 const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps) => {
+    const [initDate, setInitDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [initHour, setInitHour] = useState('08:00');
     const [endHour, setEndHour] = useState('18:00');
     const [repeat, setRepeat] = useState(false);
     const [repeatType, setRepeatType] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly');
     const [repeatCount, setRepeatCount] = useState('1');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && selectedDate) {
+            const dateStr = selectedDate.toISOString().split('T')[0];
+            setInitDate(dateStr);
+            setEndDate(dateStr);
+        }
+    }, [isOpen, selectedDate]);
 
     if (!isOpen) return null;
 
@@ -25,19 +35,22 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
         setLoading(true);
 
         try {
-            const date = selectedDate || new Date();
             const [initH, initM] = initHour.split(':');
             const [endH, endM] = endHour.split(':');
 
-            const init = new Date(date);
+            const init = new Date(initDate);
             init.setHours(parseInt(initH), parseInt(initM), 0, 0);
 
-            const end = new Date(date);
+            const end = new Date(endDate);
             end.setHours(parseInt(endH), parseInt(endM), 0, 0);
 
+            // Using full date-time strings to avoid timezone issues when constructing
+            const initISO = new Date(`${initDate}T${initHour}`).toISOString();
+            const endISO = new Date(`${endDate}T${endHour}`).toISOString();
+
             const dayOffData: Partial<DayOff> = {
-                init_hour: init.toISOString(),
-                end_hour: end.toISOString(),
+                init_hour: initISO,
+                end_hour: endISO,
                 repeat,
             };
 
@@ -67,6 +80,27 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
                 </div>
 
                 <form onSubmit={handleSubmit} className={styles.form}>
+                    <div className={styles.row}>
+                        <div className={styles.field}>
+                            <label>Data Inicial</label>
+                            <input
+                                type="date"
+                                value={initDate}
+                                onChange={(e) => setInitDate(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className={styles.field}>
+                            <label>Data Final</label>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
+
                     <div className={styles.row}>
                         <div className={styles.field}>
                             <label>Hora Inicial</label>

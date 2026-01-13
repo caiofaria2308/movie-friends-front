@@ -14,15 +14,12 @@ const CalendarPage = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [clickedDate, setClickedDate] = useState<Date | undefined>();
 
-    const isSameDay = (d1: Date, d2: Date) => {
-        return d1.getDate() === d2.getDate() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getFullYear() === d2.getFullYear();
-    };
 
-    const fetchDayOffs = async () => {
+    const fetchDayOffs = async (date: Date) => {
         try {
-            const response = await api.get('/api/user/dayoff');
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const response = await api.get(`/api/user/dayoff?filter_type=month&year=${year}&month=${month}`);
             setDayOffs(response.data || []);
         } catch (error) {
             console.error('Error fetching day offs', error);
@@ -30,13 +27,17 @@ const CalendarPage = () => {
     };
 
     useEffect(() => {
-        fetchDayOffs();
+        fetchDayOffs(new Date());
     }, []);
 
     const handleDayClick = (value: Date) => {
         const existing = dayOffs.find(d => {
             const start = new Date(d.init_hour);
-            return isSameDay(start, value);
+            const end = new Date(d.end_hour);
+            const vTime = new Date(value).setHours(0, 0, 0, 0);
+            const sTime = new Date(start).setHours(0, 0, 0, 0);
+            const eTime = new Date(end).setHours(0, 0, 0, 0);
+            return vTime >= sTime && vTime <= eTime;
         });
 
         if (existing && existing.id) {
@@ -71,7 +72,7 @@ const CalendarPage = () => {
         setLoading(true);
         try {
             await api.delete(`/api/user/dayoff/${id}?mode=${mode}`);
-            await fetchDayOffs();
+            await fetchDayOffs(selectedDate);
         } catch (error) {
             console.error('Error deleting dayoff', error);
             alert('Erro ao deletar day off');
@@ -82,12 +83,24 @@ const CalendarPage = () => {
 
     const handleSaveDayOff = async (dayOffData: Partial<DayOff>) => {
         await api.post('/api/user/dayoff', dayOffData);
-        await fetchDayOffs();
+        await fetchDayOffs(selectedDate);
     };
 
     const tileClassName = ({ date, view }: { date: Date, view: string }) => {
         if (view === 'month') {
-            if (dayOffs.find(d => isSameDay(new Date(d.init_hour), date))) {
+            const hasDayOff = dayOffs.some(d => {
+                const start = new Date(d.init_hour);
+                const end = new Date(d.end_hour);
+
+                // Clear time parts for comparison
+                const dDate = new Date(date).setHours(0, 0, 0, 0);
+                const sDate = new Date(start).setHours(0, 0, 0, 0);
+                const eDate = new Date(end).setHours(0, 0, 0, 0);
+
+                return dDate >= sDate && dDate <= eDate;
+            });
+
+            if (hasDayOff) {
                 return styles.dayOff;
             }
         }
@@ -121,6 +134,11 @@ const CalendarPage = () => {
                         value={selectedDate}
                         onClickDay={handleDayClick}
                         tileClassName={tileClassName}
+                        onActiveStartDateChange={({ activeStartDate }) => {
+                            if (activeStartDate) {
+                                fetchDayOffs(activeStartDate);
+                            }
+                        }}
                         locale="pt-BR"
                     />
                 </div>

@@ -57,7 +57,7 @@ const DashboardLayout = () => {
                         className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}
                     >
                         <Users size={20} />
-                        <span>Crews</span>
+                        <span>Familias</span>
                     </NavLink>
                     <NavLink
                         to="/dashboard/calendar"

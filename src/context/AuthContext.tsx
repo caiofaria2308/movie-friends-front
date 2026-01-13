@@ -20,16 +20,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        // Check if token exists and validate (optional)
-        // For now, if token exists, we assume authenticated.
-        // Ideally, fetch user profile here.
         const checkAuth = async () => {
             if (token) {
                 try {
                     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    // Placeholder for fetching user profile if API supports it
-                    // const res = await api.get('/user/profile');
-                    // setUser(res.data);
+                    const res = await api.get('/api/user/profile');
+                    setUser(res.data);
                 } catch (error) {
                     console.error("Auth check failed", error);
                     logout();
@@ -46,7 +42,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('token', token);
         setToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        // Fetch user details immediately or decode token if possible
+
+        // Fetch user profile after login
+        try {
+            const profileRes = await api.get('/api/user/profile');
+            setUser(profileRes.data);
+        } catch (error) {
+            console.error("Failed to fetch profile after login", error);
+        }
     };
 
     const register = async (data: RegisterData) => {
