@@ -13,6 +13,7 @@ const CalendarPage = () => {
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [clickedDate, setClickedDate] = useState<Date | undefined>();
+    const [editingDayOff, setEditingDayOff] = useState<DayOff | undefined>();
 
 
     const fetchDayOffs = async (date: Date) => {
@@ -40,50 +41,48 @@ const CalendarPage = () => {
             return vTime >= sTime && vTime <= eTime;
         });
 
-        if (existing && existing.id) {
-            // Show delete options
-            const mode = prompt(
-                'Escolha como deletar:\n' +
-                '1 - Somente esta ocorrência (single)\n' +
-                '2 - Esta e futuras ocorrências (future)\n' +
-                '3 - Todas as ocorrências (all)',
-                '1'
-            );
-
-            const modeMap: { [key: string]: string } = {
-                '1': 'single',
-                '2': 'future',
-                '3': 'all'
-            };
-
-            const deleteMode = modeMap[mode || '1'] || 'single';
-
-            if (confirm(`Confirmar exclusão (${deleteMode})?`)) {
-                handleDeleteDayOff(existing.id, deleteMode);
-            }
+        if (existing) {
+            setEditingDayOff(existing);
+            setClickedDate(value);
+            setModalOpen(true);
         } else {
-            // Open modal to create
+            setEditingDayOff(undefined);
             setClickedDate(value);
             setModalOpen(true);
         }
     };
 
-    const handleDeleteDayOff = async (id: number, mode: string) => {
+    const handleDeleteDayOff = async (id: number, mode: 'single' | 'future' | 'all') => {
         setLoading(true);
         try {
             await api.delete(`/api/user/dayoff/${id}?mode=${mode}`);
             await fetchDayOffs(selectedDate);
         } catch (error) {
             console.error('Error deleting dayoff', error);
-            alert('Erro ao deletar day off');
+            throw error;
         } finally {
             setLoading(false);
         }
     };
 
     const handleSaveDayOff = async (dayOffData: Partial<DayOff>) => {
-        await api.post('/api/user/dayoff', dayOffData);
-        await fetchDayOffs(selectedDate);
+        try {
+            await api.post('/api/user/dayoff', dayOffData);
+            await fetchDayOffs(selectedDate);
+        } catch (error) {
+            console.error('Error saving dayoff', error);
+            throw error;
+        }
+    };
+
+    const handleUpdateDayOff = async (id: number, dayOffData: Partial<DayOff>, mode: 'single' | 'future' | 'all') => {
+        try {
+            await api.put(`/api/user/dayoff/${id}?mode=${mode}`, dayOffData);
+            await fetchDayOffs(selectedDate);
+        } catch (error) {
+            console.error('Error updating dayoff', error);
+            throw error;
+        }
     };
 
     const tileClassName = ({ date, view }: { date: Date, view: string }) => {
@@ -117,6 +116,7 @@ const CalendarPage = () => {
                 <button
                     className={styles.addButton}
                     onClick={() => {
+                        setEditingDayOff(undefined);
                         setClickedDate(new Date());
                         setModalOpen(true);
                     }}
@@ -151,7 +151,10 @@ const CalendarPage = () => {
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
                 onSave={handleSaveDayOff}
+                onUpdate={handleUpdateDayOff}
+                onDelete={handleDeleteDayOff}
                 selectedDate={clickedDate}
+                editingDayOff={editingDayOff}
             />
         </div>
     );
