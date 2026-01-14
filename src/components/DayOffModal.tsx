@@ -20,16 +20,22 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
     const [repeatCount, setRepeatCount] = useState('1');
     const [loading, setLoading] = useState(false);
 
+    const formatDate = (date: Date) => {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+    };
+
+    const parseDisplayDate = (displayDate: string) => {
+        const [d, m, y] = displayDate.split('/');
+        return `${y}-${m}-${d}`;
+    };
+
     useEffect(() => {
         if (isOpen && selectedDate) {
-            // Use local date instead of UTC to avoid "jumping" days due to timezone
-            const year = selectedDate.getFullYear();
-            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-            const day = String(selectedDate.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-
-            setInitDate(dateStr);
-            setEndDate(dateStr);
+            setInitDate(formatDate(selectedDate));
+            setEndDate(formatDate(selectedDate));
         }
     }, [isOpen, selectedDate]);
 
@@ -40,18 +46,12 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
         setLoading(true);
 
         try {
-            const [initH, initM] = initHour.split(':');
-            const [endH, endM] = endHour.split(':');
-
-            const init = new Date(initDate);
-            init.setHours(parseInt(initH), parseInt(initM), 0, 0);
-
-            const end = new Date(endDate);
-            end.setHours(parseInt(endH), parseInt(endM), 0, 0);
+            const apiInitDate = parseDisplayDate(initDate);
+            const apiEndDate = parseDisplayDate(endDate);
 
             // Using full date-time strings to avoid timezone issues when constructing
-            const initISO = new Date(`${initDate}T${initHour}`).toISOString();
-            const endISO = new Date(`${endDate}T${endHour}`).toISOString();
+            const initISO = new Date(`${apiInitDate}T${initHour}`).toISOString();
+            const endISO = new Date(`${apiEndDate}T${endHour}`).toISOString();
 
             const dayOffData: Partial<DayOff> = {
                 init_hour: initISO,
@@ -89,18 +89,32 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
                         <div className={styles.field}>
                             <label>Data Inicial</label>
                             <input
-                                type="date"
+                                type="text"
+                                placeholder="DD/MM/AAAA"
                                 value={initDate}
-                                onChange={(e) => setInitDate(e.target.value)}
+                                onChange={(e) => {
+                                    let val = e.target.value.replace(/\D/g, '');
+                                    if (val.length > 8) val = val.slice(0, 8);
+                                    if (val.length >= 5) val = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`;
+                                    else if (val.length >= 3) val = `${val.slice(0, 2)}/${val.slice(2)}`;
+                                    setInitDate(val);
+                                }}
                                 required
                             />
                         </div>
                         <div className={styles.field}>
                             <label>Data Final</label>
                             <input
-                                type="date"
+                                type="text"
+                                placeholder="DD/MM/AAAA"
                                 value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
+                                onChange={(e) => {
+                                    let val = e.target.value.replace(/\D/g, '');
+                                    if (val.length > 8) val = val.slice(0, 8);
+                                    if (val.length >= 5) val = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`;
+                                    else if (val.length >= 3) val = `${val.slice(0, 2)}/${val.slice(2)}`;
+                                    setEndDate(val);
+                                }}
                                 required
                             />
                         </div>
@@ -110,18 +124,30 @@ const DayOffModal = ({ isOpen, onClose, onSave, selectedDate }: DayOffModalProps
                         <div className={styles.field}>
                             <label>Hora Inicial</label>
                             <input
-                                type="time"
+                                type="text"
+                                placeholder="HH:MM"
                                 value={initHour}
-                                onChange={(e) => setInitHour(e.target.value)}
+                                onChange={(e) => {
+                                    let val = e.target.value.replace(/\D/g, '');
+                                    if (val.length > 4) val = val.slice(0, 4);
+                                    if (val.length >= 3) val = `${val.slice(0, 2)}:${val.slice(2)}`;
+                                    setInitHour(val);
+                                }}
                                 required
                             />
                         </div>
                         <div className={styles.field}>
                             <label>Hora Final</label>
                             <input
-                                type="time"
+                                type="text"
+                                placeholder="HH:MM"
                                 value={endHour}
-                                onChange={(e) => setEndHour(e.target.value)}
+                                onChange={(e) => {
+                                    let val = e.target.value.replace(/\D/g, '');
+                                    if (val.length > 4) val = val.slice(0, 4);
+                                    if (val.length >= 3) val = `${val.slice(0, 2)}:${val.slice(2)}`;
+                                    setEndHour(val);
+                                }}
                                 required
                             />
                         </div>
